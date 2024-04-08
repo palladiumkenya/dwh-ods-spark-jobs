@@ -1,4 +1,4 @@
-SELECT distinct top 10
+SELECT distinct
 						  P.[PatientCccNumber] AS PatientID,P.[PatientPID] AS PatientPK,F.Code AS SiteCode,F.Name AS FacilityName,
                 PL.[VisitId],PL.[OrderedByDate],PL.[ReportedByDate],PL.[TestName],
                 PL.[EnrollmentTest],PL.[TestResult],P.[Emr]

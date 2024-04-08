@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.sql.Date;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -54,6 +56,12 @@ public class LoadMnchPatients {
                 .load();
         sourceDf.persist(StorageLevel.DISK_ONLY());
 
+        //clean MNCH patients
+        sourceDf = sourceDf
+                .withColumn("Voided", when(col("Voided").isNull()
+                        , lit(0)
+                        .otherwise(col("Voided"))));
+
         logger.info("Loading target mnch patients from file");
         Dataset<Row> targetDf = session.read()
                 .format("jdbc")
@@ -72,11 +80,6 @@ public class LoadMnchPatients {
         // Get new records
         Dataset<Row> newRecordsJoinDf = session.sql("SELECT s.* FROM source_mnch_patients s LEFT ANTI JOIN " +
                 "target_mnch_patients t ON s.PatientPk <=> t.PatientPk AND s.SiteCode <=> t.SiteCode");
-
-        // Hash PII columns
-//        newRecordsJoinDf = newRecordsJoinDf.withColumn("PatientPKHash", upper(sha2(col("PatientPk").cast(DataTypes.StringType), 256)))
-//                .withColumn("PatientMnchIDHash", upper(sha2(col("PatientMnchID").cast(DataTypes.StringType), 256)))
-//                .withColumn("NupiHash", upper(sha2(col("NUPI").cast(DataTypes.StringType), 256)));
 
         long newRecordsCount = newRecordsJoinDf.count();
         logger.info("New record count is: " + newRecordsCount);

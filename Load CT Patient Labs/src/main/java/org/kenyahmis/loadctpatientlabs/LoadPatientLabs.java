@@ -81,8 +81,8 @@ public class LoadPatientLabs {
 
         // set values from lookup tables
         sourceDf = sourceDf
-                .join(lookupTestNamesDf, sourceDf.col("TestName")
-                        .equalTo(lookupTestNamesDf.col("source_name")), "left")
+                .join(lookupTestNamesDf, upper(sourceDf.col("TestName"))
+                        .equalTo(upper(lookupTestNamesDf.col("source_name"))), "left")
                 .withColumn("TestName", when(lookupTestNamesDf.col("target_name").isNotNull(), lookupTestNamesDf.col("target_name"))
                         .otherwise(col("TestName")));
 
